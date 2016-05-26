@@ -72,8 +72,16 @@ game.state.add('play', {
         this.frog.x = 100;
         this.frog.y = 170;
 
-        this.frog2 = this.game.add.button(0, 0, 'sadfrog1');
+        this.frog2 = this.game.add.button(118, 90, 'sadfrog1');
+        this.frog2.anchor.setTo(0.5, 0.5);
+        this.frog2.scale.setTo(0.99, 0.99);
         this.frog2.events.onInputDown.add(state.onClickFrog, state);
+        this.frog2.events.onInputOver.add(state.onInputOverFrog, state);
+        this.frog2.events.onInputOut.add(state.onInputOutFrog, state);
+        this.frog2.inputOverTween = this.game.add.tween(this.frog2.scale)
+            .to({x: 1, y: 1}, 100, Phaser.Easing.Linear.In);
+        this.frog2.inputOutTween = this.game.add.tween(this.frog2.scale)
+            .to({x: 0.99, y: 0.99}, 100, Phaser.Easing.Linear.In);
         this.frog.add(this.frog2);
 
         this.tearTextPool = this.add.group();
@@ -173,7 +181,7 @@ game.state.add('play', {
     },
     displayTears: function() {
         this.playerTearsText.text = '' + Math.round(this.player.tears);
-        this.tpsText.text = '' + this.player.tps;
+        this.tpsText.text = '' + Math.round(this.player.tps * 10) / 10;
     },
     recordCheckPoint: function() {
         this.player.checkPoint = Date.now();
@@ -215,9 +223,9 @@ game.state.add('play', {
             console.log('new balance: ' + this.player.tears);
             this.recordCheckPoint();
             button.details.level++;
-            button.details.cost = costOf(button.details);
+            button.details.cost = Math.round(costOf(button.details));
             button.text.text = button.details.name + ': ' + button.details.level;
-            button.costText.text = button.details.cost;
+            button.costText.text = 'Cost: ' + button.details.cost;
             button.details.purchaseHandler.call(this, button, this.player);
             this.displayTears();
         } else {
@@ -230,6 +238,12 @@ game.state.add('play', {
             this.player.tears = this.player.checkPointTears + this.player.tps * secondsSince(this.player.checkPoint);
             this.displayTears();
         }
+    },
+    onInputOverFrog: function(button, pointer) {
+        button.inputOverTween.start();
+    },
+    onInputOutFrog: function(button, pointer) {
+        button.inputOutTween.start();
     }
 });
 
