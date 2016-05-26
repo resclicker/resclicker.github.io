@@ -22,6 +22,15 @@ game.state.add('play', {
         buttonImage.ctx.fillRect(0, 0, 225, 48);
         buttonImage.ctx.strokeRect(0, 0, 225, 48);
         this.game.cache.addBitmapData('button', buttonImage);
+
+        var statsSize = {w: 800, h: 126};
+        var statsPanel = this.game.add.bitmapData(statsSize.w, statsSize.h);
+        statsPanel.ctx.fillStyle = '#9a783d';
+        statsPanel.ctx.strokeStyle = '#35371c';
+        statsPanel.ctx.lineWidth = 0;
+        statsPanel.ctx.fillRect(0, 0, statsSize.w, statsSize.h);
+        statsPanel.ctx.strokeRect(0, 0, statsSize.w, statsSize.h);
+        this.game.cache.addBitmapData('statsPanel', statsPanel);
     },
     create: function() {
         
@@ -38,11 +47,14 @@ game.state.add('play', {
             });
 
         var upgradeButtonsData = [
-            {icon: 'yyy', name: 'L1 Smurfling', level: 1, baseCost: 5, cost: 5, purchaseHandler: function(button, player) {
-                player.tps += 1;
+            {icon: 'yyy', name: 'L1 Smurfling', level: 0, baseCost: 20, cost: 20, purchaseHandler: function(button, player) {
+                player.tps += 0.1;
             }},
-            {icon: 'xxx', name: 'L7 Levler', level: 0, baseCost: 25, cost: 25, purchaseHandler: function(button, player) {
-                player.tps += 5;
+            {icon: 'xxx', name: 'Builder smurf', level: 0, baseCost: 100, cost: 100, purchaseHandler: function(button, player) {
+                player.tps += 0.5;
+            }},
+            {icon: 'xxx', name: 'L7 Levler', level: 0, baseCost: 500, cost: 500, purchaseHandler: function(button, player) {
+                player.tps += 1;
             }}
         ];
 
@@ -56,8 +68,13 @@ game.state.add('play', {
             tps: 0
         };
 
-        this.frog2 = this.game.add.button(100, 100, 'sadfrog1');
+        this.frog = this.add.group();
+        this.frog.x = 100;
+        this.frog.y = 170;
+
+        this.frog2 = this.game.add.button(0, 0, 'sadfrog1');
         this.frog2.events.onInputDown.add(state.onClickFrog, state);
+        this.frog.add(this.frog2);
 
         this.tearTextPool = this.add.group();
         var tearText;
@@ -84,7 +101,7 @@ game.state.add('play', {
 
         // create a pool of tears
         this.tearPool = this.add.group();
-        var tearCoords = [{x: 210, y: 160}, {x: 285, y: 175}];
+        var tearCoords = [{x: 115, y: 70}, {x: 185, y: 75}];
         for (var d=0; d<50; d++) {
 
             var rand = tearCoords[Math.floor(Math.random() * tearCoords.length)];
@@ -103,12 +120,43 @@ game.state.add('play', {
                 tear.kill();
             });
         }
+        this.tearPool.x =0;
+        this.tearPool.y =0;
+        this.frog.add(this.tearPool);
 
-        this.playerTearsText = this.add.text(30, 30, 'Tears: ' + this.player.tears, {
+        this.statsUI = this.game.add.group();
+
+        this.statsPanel = this.game.add.image(0, 0, this.game.cache.getBitmapData('statsPanel'));
+        this.statsPanel.alpha = 0.2;
+        this.statsUI.add(this.statsPanel);
+
+        var playerTearsLabel = this.add.text(25, 5, 'Tears:', {
+            font: '18px Arial Black',
+            fill: '#fff',
+            strokeThickness: 4
+        });
+        this.statsUI.add(playerTearsLabel);
+        this.playerTearsText = this.add.text(25, 30, '0', {
             font: '24px Arial Black',
             fill: '#fff',
             strokeThickness: 4
         });
+        this.statsUI.add(this.playerTearsText);
+
+        var tpsLabel = this.add.text(25, 65, 'Tears per second: ', {
+            font: '18px Arial Black',
+            fill: '#fff',
+            strokeThickness: 4
+        });
+        this.statsUI.add(tpsLabel);
+        this.tpsText = this.add.text(25, 90, '0', {
+            font: '24px Arial Black',
+            fill: '#fff',
+            strokeThickness: 4
+        });
+        this.statsUI.add(this.tpsText);
+        this.statsUI.x = 0;
+        this.statsUI.y = 30;
 
         this.upgradePanel = this.game.add.image(500, 70, this.game.cache.getBitmapData('upgradePanel'));
         var upgradeButtons = this.upgradePanel.addChild(this.game.add.group());
@@ -128,11 +176,13 @@ game.state.add('play', {
 
         //this.frog2.icon = this.frog2.addChile(state.game.add.image(0, 0, ));
         this.tpsTimer = this.game.time.events.loop(100, this.onTPS, this);
+        this.displayTears();
     },
     render: function() {
     },
     displayTears: function() {
-        this.playerTearsText.text = 'Tears: ' + Math.round(this.player.tears);
+        this.playerTearsText.text = '' + Math.round(this.player.tears);
+        this.tpsText.text = '' + this.player.tps;
     },
     recordCheckPoint: function() {
         this.player.checkPoint = Date.now();
@@ -169,6 +219,7 @@ game.state.add('play', {
             button.text.text = button.details.name + ': ' + button.details.level;
             button.costText.text = button.details.cost;
             button.details.purchaseHandler.call(this, button, this.player);
+            this.displayTears();
         } else {
             console.log('cant afford: ' + this.player.tears + ' < ' + button.details.cost);
         }
