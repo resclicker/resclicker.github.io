@@ -80,22 +80,13 @@ game.state.add('play', {
         var tearText;
         for (var d=0; d<50; d++) {
             tearText = this.add.text(0, 0, '1', {
-                font: '64px Arial Black',
+                font: '32px Arial Black',
                 fill: '#fff',
                 strokeThickness: 4
             });
             // start out not existing, so we don't draw it yet
             tearText.exists = false;
-            tearText.tween = game.add.tween(tearText)
-                .to({
-                    alpha: 0,
-                    y: 100,
-                    x: this.game.rnd.integerInRange(100, 700)
-                }, 1000, Phaser.Easing.Cubic.Out);
-         
-            tearText.tween.onComplete.add(function(text, tween) {
-                text.kill();
-            });
+            tearText.anchor.setTo(0, 1);
             this.tearTextPool.add(tearText);
         }
 
@@ -192,10 +183,19 @@ game.state.add('play', {
         // grab a damage text from the pool to display what happened
         var tearText = this.tearTextPool.getFirstExists(false);
         if (tearText) {
-            tearText.text = this.player.clickTears;
+            tearText.text = '+' + this.player.clickTears;
             tearText.reset(pointer.positionDown.x, pointer.positionDown.y);
             tearText.alpha = 1;
-            tearText.tween.start();
+            var tw = this.game.add.tween(tearText)
+                .to({
+                    x: pointer.x,
+                    y: pointer.y - 40,
+                    alpha: 0
+                }, 2000, Phaser.Easing.Exponential.Out);
+            tw.onComplete.add(function(text, tween) {
+                text.kill();
+            });
+            tw.start();
         }
         var tear = this.tearPool.getFirstExists(false);
         if(tear) {
