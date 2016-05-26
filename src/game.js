@@ -46,14 +46,14 @@ game.state.add('play', {
                 bg.tileScale.setTo(1,1);
             });
 
-        var upgradeButtonsData = [
-            {icon: 'yyy', name: 'L1 Smurfling', level: 0, baseCost: 20, cost: 20, purchaseHandler: function(button, player) {
+        this.upgradeButtonsData = [
+            {icon: 'yyy', id: 'L1 Smurfling', name: 'L1 Smurfling', level: 0, baseCost: 20, cost: 20, purchaseHandler: function(button, player) {
                 player.tps += 0.1;
             }},
-            {icon: 'xxx', name: 'Builder smurf', level: 0, baseCost: 100, cost: 100, purchaseHandler: function(button, player) {
+            {icon: 'xxx', id: 'Builder smurf', name: 'Builder smurf', level: 0, baseCost: 100, cost: 100, purchaseHandler: function(button, player) {
                 player.tps += 0.5;
             }},
-            {icon: 'xxx', name: 'L7 Levler', level: 0, baseCost: 500, cost: 500, purchaseHandler: function(button, player) {
+            {icon: 'xxx', id: 'L7 Levler', name: 'L7 Levler', level: 0, baseCost: 500, cost: 500, purchaseHandler: function(button, player) {
                 player.tps += 1;
             }}
         ];
@@ -67,6 +67,8 @@ game.state.add('play', {
             clickTears: 1,
             tps: 0
         };
+
+        this.loadSavedGameState();
 
         this.frog = this.add.group();
         this.frog.x = 100;
@@ -162,7 +164,7 @@ game.state.add('play', {
         upgradeButtons.position.setTo(8, 8);
 
         var button;
-        upgradeButtonsData.forEach(function(buttonData, index) {
+        this.upgradeButtonsData.forEach(function(buttonData, index) {
             button = state.game.add.button(0, (50 * index), state.game.cache.getBitmapData('button'));
             button.icon = button.addChild(state.game.add.image(6, 6, buttonData.icon));
             button.text = button.addChild(state.game.add.text(42, 6, buttonData.name + ': ' + buttonData.level, {font: '16px Arial Black'}));
@@ -175,6 +177,7 @@ game.state.add('play', {
 
         //this.frog2.icon = this.frog2.addChile(state.game.add.image(0, 0, ));
         this.tpsTimer = this.game.time.events.loop(100, this.onTPS, this);
+        this.saveTimer = this.game.time.events.loop(10000, this.saveGameState, this);
         this.displayTears();
     },
     render: function() {
@@ -215,6 +218,7 @@ game.state.add('play', {
         this.player.tears += this.player.clickTears;
         this.recordCheckPoint();
         this.displayTears();
+        this.saveGameState();
     },
     onUpgradeButtonClick: function(button, pointer) {
 
@@ -223,11 +227,12 @@ game.state.add('play', {
             console.log('new balance: ' + this.player.tears);
             this.recordCheckPoint();
             button.details.level++;
-            button.details.cost = Math.round(costOf(button.details));
+            button.details.cost = costOf(button.details);
             button.text.text = button.details.name + ': ' + button.details.level;
             button.costText.text = 'Cost: ' + button.details.cost;
             button.details.purchaseHandler.call(this, button, this.player);
             this.displayTears();
+            this.saveGameState();
         } else {
             console.log('cant afford: ' + this.player.tears + ' < ' + button.details.cost);
         }
@@ -244,6 +249,50 @@ game.state.add('play', {
     },
     onInputOutFrog: function(button, pointer) {
         button.inputOutTween.start();
+    },
+    saveGameState: function() {
+        if (!supportsLocalStorage()) { return false; }
+
+        var localStorage = window['localStorage'];
+        console.log('localStorage: ' + localStorage);
+
+        localStorage["resclicker.savegames.1.player"] = '{\
+            "version": 1,\
+            "player": ' +
+            JSON.stringify(this.player) +
+            '}';
+        localStorage["resclicker.savegames.1.upgrades"] = '{\
+            "version": 1,\
+            "upgrades": ' +
+            JSON.stringify(this.upgradeButtonsData) +
+            '}';
+        return true;
+    },
+    loadSavedGameState: function() {
+        if (!supportsLocalStorage()) { return false; }
+
+        var localStorage = window['localStorage'];
+
+        var pk = "resclicker.savegames.1.player";
+        var storedPlayer = pk in localStorage ? localStorage[pk] : null;
+        var uk = "resclicker.savegames.1.upgrades";
+        var storedUpgrades = uk in localStorage ? localStorage[uk] : null;
+        console.log('storedPlayer: ' + storedPlayer);
+        console.log('storedUpgrades: ' + storedUpgrades);
+        if(storedPlayer !== null && storedUpgrades !== null) {
+            this.player = JSON.parse(storedPlayer).player;
+            var state = this;
+            JSON.parse(storedUpgrades).upgrades.forEach(function(savedUpgrade, index) {
+                state.upgradeButtonsData.forEach(function(upgrade, index) {
+                    if(savedUpgrade.id == upgrade.id) {
+                        upgrade.level = savedUpgrade.level;
+                        console.log("upgrade.level: " + upgrade.level);
+                        upgrade.cost = costOf(upgrade);
+                    }
+                });
+            });
+            return true;
+        } else return false;
     }
 });
 
@@ -252,7 +301,15 @@ function secondsSince(timestamp) {
 }
 
 function costOf(upgrade) {
-    return upgrade.baseCost * Math.pow(1.15, upgrade.level);
+    return Math.round(upgrade.baseCost * Math.pow(1.15, upgrade.level));
+}
+
+function supportsLocalStorage() {
+    try {
+        return 'localStorage' in window && window['localStorage'] !== null;
+    } catch (e) {
+        return false;
+    }
 }
 
 game.state.start('play');
