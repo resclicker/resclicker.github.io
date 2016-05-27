@@ -9,16 +9,16 @@ game.state.add('play', {
 
         // build panel for upgrades
         var bmd = this.game.add.bitmapData(250, 500);
-        bmd.ctx.fillStyle = '#9a783d';
-        bmd.ctx.strokeStyle = '#35371c';
-        bmd.ctx.lineWidth = 12;
+        bmd.ctx.fillStyle = '#222222';
+        bmd.ctx.strokeStyle = '#59fbeb';
+        bmd.ctx.lineWidth = 4;
         bmd.ctx.fillRect(0, 0, 250, 500);
         bmd.ctx.strokeRect(0, 0, 250, 500);
         this.game.cache.addBitmapData('upgradePanel', bmd);
         
         var buttonImage = this.game.add.bitmapData(476, 48);
-        buttonImage.ctx.fillStyle = '#e6dec7';
-        buttonImage.ctx.strokeStyle = '#35371c';
+        buttonImage.ctx.fillStyle = '#147c74';
+        buttonImage.ctx.strokeStyle = '#59fbeb';
         buttonImage.ctx.lineWidth = 4;
         buttonImage.ctx.fillRect(0, 0, 225, 48);
         buttonImage.ctx.strokeRect(0, 0, 225, 48);
@@ -182,10 +182,9 @@ game.state.add('play', {
         var button;
         this.upgradeButtonsData.forEach(function(buttonData, index) {
             button = state.game.add.button(0, (50 * index), state.game.cache.getBitmapData('button'));
-            //button.icon = button.addChild(state.game.add.image(6, 6, buttonData.icon));
-            button.text = button.addChild(state.game.add.text(42, 6, buttonData.name + ': ' + buttonData.level, {font: '16px Arial Black'}));
+            button.text = button.addChild(state.game.add.text(42, 6, buttonData.name + ': ' + buttonData.level, {font: '16px helvetica', fill: '#59fbeb'}));
             button.details = buttonData;
-            button.costText = button.addChild(state.game.add.text(42, 24, 'Cost: ' + buttonData.cost, {font: '16px Arial Black'}));
+            button.costText = button.addChild(state.game.add.text(42, 24, 'Cost: ' + buttonData.cost, {font: '16px helvetica', fill: '#59fbeb'}));
             button.events.onInputDown.add(state.onUpgradeButtonClick, state);
          
             upgradeButtons.addChild(button);
