@@ -5,6 +5,7 @@ game.state.add('play', {
         this.game.load.image('sadfrog1', 'assets/sadfrog002.png');
         this.game.load.image('background1', 'assets/stockholm.png');
         this.game.load.image('tear', 'assets/tear2.png');
+        this.game.load.image('help-clickfrog', 'assets/help-clickfrog.png');
 
         // build panel for upgrades
         var bmd = this.game.add.bitmapData(250, 500);
@@ -125,6 +126,21 @@ game.state.add('play', {
         this.tearPool.y =0;
         this.frog.add(this.tearPool);
 
+        this.helpClickFrog = this.game.add.image(250, 75, 'help-clickfrog');
+        this.helpClickFrog.spawnX = this.helpClickFrog.x;
+        this.helpClickFrog.spawnY = this.helpClickFrog.y;
+        this.helpClickFrog.scale.setTo(0.5, 0.5);
+
+        this.helpClickFrog.exists = true;
+        this.helpClickFrog.tween = this.game.add.tween(this.helpClickFrog)
+            .to({x: this.helpClickFrog.x - 20}, 2000, Phaser.Easing.Bounce.Out);
+        this.helpClickFrog.tween.onComplete.add(function(sprite, tween) {
+            console.log('onComplete');
+            sprite.kill();
+            state.showHelpClickFrog();
+        });
+        this.frog.add(this.helpClickFrog);
+
         this.statsUI = this.game.add.group();
 
         this.statsPanel = this.game.add.image(0, 0, this.game.cache.getBitmapData('statsPanel'));
@@ -166,7 +182,7 @@ game.state.add('play', {
         var button;
         this.upgradeButtonsData.forEach(function(buttonData, index) {
             button = state.game.add.button(0, (50 * index), state.game.cache.getBitmapData('button'));
-            button.icon = button.addChild(state.game.add.image(6, 6, buttonData.icon));
+            //button.icon = button.addChild(state.game.add.image(6, 6, buttonData.icon));
             button.text = button.addChild(state.game.add.text(42, 6, buttonData.name + ': ' + buttonData.level, {font: '16px Arial Black'}));
             button.details = buttonData;
             button.costText = button.addChild(state.game.add.text(42, 24, 'Cost: ' + buttonData.cost, {font: '16px Arial Black'}));
@@ -175,10 +191,12 @@ game.state.add('play', {
             upgradeButtons.addChild(button);
         });
 
-        //this.frog2.icon = this.frog2.addChile(state.game.add.image(0, 0, ));
+        this.upfront = this.game.add.group();
+
         this.tpsTimer = this.game.time.events.loop(100, this.onTPS, this);
         this.saveTimer = this.game.time.events.loop(10000, this.saveGameState, this);
         this.displayTears();
+        this.showHelpClickFrog();
     },
     render: function() {
     },
@@ -293,6 +311,17 @@ game.state.add('play', {
             });
             return true;
         } else return false;
+    },
+    showHelpClickFrog: function() {
+        if(this.player.manualTears < 5) {
+            this.upfront.add(this.frog);
+            this.helpClickFrog.reset(this.helpClickFrog.spawnX, this.helpClickFrog.spawnY);
+            //this.helpClickFrog.exists = true;
+            this.helpClickFrog.tween.start();
+        }
+    },
+    showHelpBuyUpgrade: function() {
+ 
     }
 });
 
