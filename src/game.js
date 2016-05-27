@@ -126,12 +126,12 @@ game.state.add('play', {
         this.tearPool.y =0;
         this.frog.add(this.tearPool);
 
-        this.helpClickFrog = this.game.add.image(250, 75, 'help-clickfrog');
+        this.helpClickFrog = this.game.add.image(350, 230, 'help-clickfrog');
         this.helpClickFrog.spawnX = this.helpClickFrog.x;
         this.helpClickFrog.spawnY = this.helpClickFrog.y;
         this.helpClickFrog.scale.setTo(0.5, 0.5);
 
-        this.helpClickFrog.exists = true;
+        this.helpClickFrog.exists = false;
         this.helpClickFrog.tween = this.game.add.tween(this.helpClickFrog)
             .to({x: this.helpClickFrog.x - 20}, 2000, Phaser.Easing.Bounce.Out);
         this.helpClickFrog.tween.onComplete.add(function(sprite, tween) {
@@ -314,7 +314,7 @@ game.state.add('play', {
     },
     showHelpClickFrog: function() {
         if(this.player.manualTears < 5) {
-            this.upfront.add(this.frog);
+            this.upfront.add(this.helpClickFrog);
             this.helpClickFrog.reset(this.helpClickFrog.spawnX, this.helpClickFrog.spawnY);
             //this.helpClickFrog.exists = true;
             this.helpClickFrog.tween.start();
